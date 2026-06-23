@@ -31,6 +31,9 @@ jobs:
       - name: Package
         run: mvn package
 
+      - name: Check AWS CLI
+        run: aws --version  
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
