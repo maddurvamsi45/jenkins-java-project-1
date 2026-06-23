@@ -1,33 +1,43 @@
 name: CI WORKFLOW
-on: push
+
+on:
+  push:
+
 jobs:
   ci-job:
-     runs-on: ubuntu-22.04
-     steps:
-       - name: checkout
-         uses: actions/checkout@v7
+    runs-on: ubuntu-22.04
 
-       - name: Set up Java
-         uses: actions/setup-java@v4
-         with:
-           distribution: 'temurin'
-           java-version: '21'
- 
-       - name: Setup Maven
-         uses: actionctl/setup-maven-cli@v1
-         with:
-           maven_version: '3.9.16'
-           
-       - name: build
-         run: mvn compile
-         
-       - name: test
-         run: mvn test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-       - name: artifact
-         run: mvn package
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
 
-    
-            
-       
-         
+      - name: Setup Maven
+        uses: actionctl/setup-maven-cli@v1
+        with:
+          maven_version: 3.9.16
+
+      - name: Compile
+        run: mvn compile
+
+      - name: Test
+        run: mvn test
+
+      - name: Package
+        run: mvn package
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload Artifact to S3
+        run: |
+          aws s3 cp target/*.war s3://demo-demo1234-vamsisss/
