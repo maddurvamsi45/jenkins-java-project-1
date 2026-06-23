@@ -2,38 +2,60 @@ name: CI WORKFLOW
 
 on:
   push:
+    branches:
+      - main
 
 jobs:
   ci-job:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      # Checkout Source Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Setup Java
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
+      # Setup Maven
       - name: Setup Maven
-        uses: actionctl/setup-maven-cli@v1
+        uses: stCarolas/setup-maven@v5
         with:
-          maven_version: 3.9.16
+          maven-version: 3.9.6
 
+      # Verify Java & Maven
+      - name: Verify Tools
+        run: |
+          java -version
+          mvn -version
+
+      # Compile Project
       - name: Compile
-        run: mvn compile
+        run: mvn clean compile
 
+      # Run Unit Tests
       - name: Test
         run: mvn test
 
+      # Build WAR File
       - name: Package
         run: mvn package
 
-      - name: Check AWS CLI
-        run: aws --version  
+      # Verify WAR File
+      - name: Verify Artifact
+        run: |
+          ls -ltr target/
+          find target -name "*.war"
 
+      # Check AWS CLI
+      - name: Check AWS CLI
+        run: aws --version
+
+      # Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -41,6 +63,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # Verify AWS Access
+      - name: Verify AWS Login
+        run: aws sts get-caller-identity
+
+      # Upload WAR to S3
       - name: Upload Artifact to S3
         run: |
-          aws s3 cp target/*.war s3://demo-demo1234-vamsisss/
+          WAR_FILE=$(find target -name "*.war" | head -1)
+          echo "Uploading $WAR_FILE"
+          aws s3 cp "$WAR_FILE" s3://demo-demo1234-vamsisss/
+
+      # Verify Upload
+      - name: Verify S3 Upload
+        run: |
+          aws s3 ls s3://demo-demo1234-vamsisss/
