@@ -72,7 +72,7 @@ jobs:
         run: |
           WAR_FILE=$(find target -name "*.war" | head -1)
           echo "Uploading $WAR_FILE"
-          aws s3 cp "$WAR_FILE" s3://demo-demo1234-vamsisss/
+          aws s3 cp "$WAR_FILE" s3://dmemo-bucketsgjfds/
 
       # Verify Upload
       - name: Verify S3 Upload
